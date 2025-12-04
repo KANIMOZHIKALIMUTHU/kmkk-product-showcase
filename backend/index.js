@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs'); // ← ADD THIS
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
@@ -11,13 +12,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ CREATE DATA DIRECTORY FIRST (FIXES SQLITE_CANTOPEN)
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+  console.log(`📁 Created data directory: ${dataDir}`);
+}
+
+const dbPath = path.join(dataDir, 'app.db');
+console.log(`📁 Database path: ${dbPath}`);
+
 // Database connection
-const db = new sqlite3.Database(path.join(__dirname, 'data', 'app.db'), (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('DB connection error:', err.message);
     process.exit(1);
   }
-  console.log(`✅ Connected to SQLite database at ./data/app.db`);
+  console.log(`✅ Connected to SQLite database at ${dbPath}`);
 
   // Create products table if not exists
   db.run(
@@ -28,6 +39,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'app.db'), (err) =>
       price REAL NOT NULL,
       image_url TEXT,
       short_desc TEXT,
+      long_desc TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`
   );
@@ -154,20 +166,21 @@ const db = new sqlite3.Database(path.join(__dirname, 'data', 'app.db'), (err) =>
   }
       ];
 
+
       const stmt = db.prepare(
-        `INSERT INTO products (name, category, price, image_url, short_desc, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?)`
+        `INSERT INTO products (name, category, price, image_url, short_desc, long_desc, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)`
       );
 
       products.forEach((p) => {
-        stmt.run(p.name, p.category, p.price, p.image_url, p.short_desc, p.created_at.toISOString());
+        stmt.run(p.name, p.category, p.price, p.image_url, p.short_desc, p.long_desc, new Date().toISOString());
       });
 
       stmt.finalize(() => {
         console.log('✅ Seeded 12 products');
       });
     } else {
-      console.log(`✅ Found ${row.count} products`);
+      console.log(`✅ Found ${row.count} products already`);
     }
   });
 });
@@ -181,4 +194,4 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = db; // export db if needed elsewhere
+module.exports = db;
