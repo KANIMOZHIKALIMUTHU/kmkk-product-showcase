@@ -29,26 +29,30 @@ const EnquiryForm = ({ productId, productName, onClose }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    setLoading(true);
-    try {
-      await axios.post('https://kmkk-product-showcase.onrender.com/api/enquiries', {
-        product_id: productId,
-        ...formData
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-      }, 2000);
-    } catch (error) {
-      setErrors({ submit: 'Failed to submit enquiry. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    await axios.post('https://kmkk-product-showcase.onrender.com/api/enquiries', {
+      product_id: Number(productId),  // ✅ FORCE NUMBER
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim() || null,
+      message: formData.message.trim()
+    });
+    setSuccess(true);
+    setTimeout(() => {
+      setSuccess(false);
+      onClose();
+    }, 2000);
+  } catch (error) {
+    console.error('Enquiry error:', error.response?.data);  // ✅ DEBUG
+    setErrors({ submit: 'Failed to submit enquiry. Please try again.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (success) {
     return (
