@@ -2,7 +2,7 @@
 import "./index.css";
 
 const Pagination = ({ total, page, limit, onPageChange }) => {
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil((total || 0) / (limit || 1));
   if (totalPages <= 1) return null;
 
   const maxVisible = 5;
