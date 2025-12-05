@@ -204,9 +204,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
 const routes = require('./routes');
 app.use('/api', routes);
 
-// Start Server
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ DB ready. db.all type: ${typeof db.all}`);  // DEBUG
 });
 
-module.exports = db;
+global.db = db;  // Global access
+module.exports = db;  // Controllers import this
