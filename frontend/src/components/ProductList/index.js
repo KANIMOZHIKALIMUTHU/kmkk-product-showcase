@@ -22,7 +22,7 @@ const ProductList = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get('http://localhost:3001/api/products', {
+      .get('https://kmkk-product-showcase.onrender.com/api/products', {
         params: { search, category, page, limit },
       })
       .then((res) => {
