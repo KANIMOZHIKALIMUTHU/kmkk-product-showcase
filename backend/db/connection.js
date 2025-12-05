@@ -1,2 +1,2 @@
-// db/connection.js
-module.exports = require('../index');
+// db/connection.js - FORCE GLOBAL DB
+module.exports = global.db || require('../index');

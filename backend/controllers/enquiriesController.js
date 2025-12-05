@@ -1,4 +1,4 @@
-const db = require('../db/connection'); // Now works
+const db = global.db;  // ✅ SAME GLOBAL FIX
 const emailService = require('../services/emailService');
 const { enquiryValidation } = require('../middleware/validation');
 
