@@ -200,6 +200,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
   );
 });
 
+const { initDB } = require('./lib/db');
+initDB(db);  // ✅ INITIALIZE GLOBAL SINGLETON
+
 // Routes
 const routes = require('./routes');
 app.use('/api', routes);

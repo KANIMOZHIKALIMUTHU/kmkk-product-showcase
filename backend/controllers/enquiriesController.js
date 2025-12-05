@@ -1,10 +1,11 @@
-const db = global.db;  // ✅ SAME GLOBAL FIX
+const { getDB } = require('../lib/db');
 const emailService = require('../services/emailService');
 const { enquiryValidation } = require('../middleware/validation');
 
 const createEnquiry = async (req, res) => {
   try {
     const { error } = enquiryValidation(req.body);
+    const db = getDB();
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
@@ -37,6 +38,7 @@ const createEnquiry = async (req, res) => {
 };
 
 const getEnquiries = async (req, res) => {
+  const db = getDB();
   db.all(`
     SELECT e.*, p.name as product_name 
     FROM enquiries e 
