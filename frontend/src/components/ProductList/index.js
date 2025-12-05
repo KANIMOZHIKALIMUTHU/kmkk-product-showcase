@@ -103,7 +103,7 @@ const ProductList = () => {
                   <p className="product-desc">{p.short_desc}</p>
                   <div className="product-footer">
                     <span className="product-price">
-                      ${p.price.toFixed(2)}
+                      ${(product?.price || 0).toFixed(2)}
                     </span>
                     <button
                       className="product-btn"
