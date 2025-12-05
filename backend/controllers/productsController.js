@@ -2,40 +2,49 @@
 const db = require('../db/connection');
 
 const getProducts = (req, res) => {
-  const { search, category, page = 1, limit = 10 } = req.query;
-  const offset = (page - 1) * limit;
+  // SAFETY CHECK - Log what db is
+  console.log('DB type:', typeof db, 'db.all:', typeof db.all);
+  
+  if (typeof db.all !== 'function') {
+    return res.status(500).json({ error: 'Database not ready' });
+  }
 
-  let query = `
-    SELECT * FROM products 
-    WHERE 1=1
-  `;
-  const params = [];
+  const { search, category, page = 1, limit = 6 } = req.query;
+  const offset = (page - 1) * parseInt(limit);
+
+  let sql = 'SELECT * FROM products WHERE 1=1';
+  let params = [];
 
   if (search) {
-    query += ` AND name LIKE ?`;
+    sql += ' AND name LIKE ?';
     params.push(`%${search}%`);
   }
   if (category) {
-    query += ` AND category = ?`;
+    sql += ' AND category = ?';
     params.push(category);
   }
 
-  query += ` ORDER BY name LIMIT ? OFFSET ?`;
-  params.push(Number(limit), Number(offset));
+  sql += ' ORDER BY name LIMIT ? OFFSET ?';
+  params.push(parseInt(limit), offset);
 
-  db.all(query, params, (err, products) => {
+  db.all(sql, params, (err, products) => {
     if (err) {
       console.error('Products query error:', err);
       return res.status(500).json({ error: 'Database error' });
     }
 
-    // Get total count
-    db.get('SELECT COUNT(*) as total FROM products WHERE 1=1' + (search ? ` AND name LIKE '%${search}%'` : '') + (category ? ` AND category = '${category}'` : ''), (err, count) => {
-      res.json({ 
-        products, 
-        total: count?.total || 0,
-        page: Number(page),
-        limit: Number(limit)
+    // Count total
+    const countSql = `SELECT COUNT(*) as total FROM products WHERE 1=1${search ? ` AND name LIKE '%${search}%'` : ''}${category ? ` AND category = '${category}'` : ''}`;
+    db.get(countSql, (err, row) => {
+      if (err) {
+        console.error('Count error:', err);
+        return res.status(500).json({ error: 'Count error' });
+      }
+      res.json({
+        products,
+        total: row.total,
+        page: parseInt(page),
+        limit: parseInt(limit)
       });
     });
   });

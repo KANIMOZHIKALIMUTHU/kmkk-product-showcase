@@ -1,2 +1,3 @@
-// db/connection.js - SINGLE DB REFERENCE
-module.exports = require('../index');
+// db/connection.js - EXPORT REAL DB
+const db = require('../index');
+module.exports = db;
