@@ -11,7 +11,7 @@ const ProductCard = ({ product }) => (
       <h3 className="product-name">{product.name}</h3>
       <p className="product-category">{product.category}</p>
       <p className="product-desc">{product.short_desc}</p>
-      <div className="product-price">${(product.price || 0).toFixed(2)}</div>
+      <div className="product-price">${Number(p?.price ?? 0).toFixed(2)}</div>
     </div>
   </div>
 );
