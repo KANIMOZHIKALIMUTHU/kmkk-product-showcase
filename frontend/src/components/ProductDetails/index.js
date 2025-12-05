@@ -10,10 +10,26 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showEnquiry, setShowEnquiry] = useState(false);
 
+  // BULLETPROOF PRICE FORMATTER
+  const formatPrice = (price) => {
+    if (!price || !Number.isFinite(price)) return '$0.00';
+    try {
+      return `$${Number(price).toFixed(2)}`;
+    } catch {
+      return '$0.00';
+    }
+  };
+
   useEffect(() => {
-    axios.get(`/api/products/${id}`)
-      .then(res => setProduct(res.data))
-      .catch(err => console.error(err))
+    axios.get(`https://kmkk-product-showcase.onrender.com/api/products/${id}`)  // ✅ FULL URL
+      .then(res => {
+        console.log('Product Details API:', res.data);  // ✅ DEBUG
+        setProduct(res.data);
+      })
+      .catch(err => {
+        console.error('Product Details Error:', err);
+        setProduct(null);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -30,7 +46,7 @@ const ProductDetails = () => {
         <div className="details-image">
           <img 
             src={product.image_url || '/placeholder.jpg'} 
-            alt={product.name}
+            alt={product.name || 'Product'}
             loading="eager"
           />
         </div>
@@ -38,8 +54,8 @@ const ProductDetails = () => {
         <div className="details-content">
           <h1 className="details-name">{product.name}</h1>
           <p className="details-category">{product.category}</p>
-          <div className="details-price">${product.price.toFixed(2)}</div>
-          <div className="details-desc">{product.long_desc}</div>
+          <div className="details-price">{formatPrice(product.price)}</div>  {/* ✅ FIXED */}
+          <div className="details-desc">{product.long_desc || product.short_desc || ''}</div>
           
           <button 
             className="enquire-btn"
