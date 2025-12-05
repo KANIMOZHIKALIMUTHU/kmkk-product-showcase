@@ -1,4 +1,3 @@
-// src/components/ProductList/index.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -13,11 +12,19 @@ const ProductList = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(6);
   const [loading, setLoading] = useState(true);
-  const placeholder =
-  'https://via.placeholder.com/400x300?text=Product+Image';
-
+  const placeholder = 'https://via.placeholder.com/400x300?text=Product+Image';
 
   const navigate = useNavigate();
+
+  // BULLETPROOF PRICE FORMATTER
+  const formatPrice = (price) => {
+    if (!price || !Number.isFinite(price)) return '$0.00';
+    try {
+      return `$${Number(price).toFixed(2)}`;
+    } catch {
+      return '$0.00';
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -26,17 +33,24 @@ const ProductList = () => {
         params: { search, category, page, limit },
       })
       .then((res) => {
-        setProducts(res.data.products || []);
+        console.log('API Response:', res.data); // DEBUG
+        setProducts(Array.isArray(res.data.products) ? res.data.products : []);
         setTotal(res.data.total || 0);
       })
       .catch((err) => {
-        console.error('API Error:', err.response?.data || err.message);
+        console.error('API Error:', err);
+        setProducts([]); // Ensure empty array
       })
       .finally(() => setLoading(false));
   }, [search, category, page, limit]);
 
+  if (loading) {
+    return <div className="loading">Loading products...</div>;
+  }
+
   return (
     <div className="products-page">
+      {/* toolbar code unchanged */}
       <div className="products-toolbar" role="search">
         <input
           className="search-input"
@@ -67,66 +81,50 @@ const ProductList = () => {
         </select>
       </div>
 
-      {loading ? (
-        <div className="loading">Loading products...</div>
+      {total === 0 ? (
+        <div className="no-results">No products found</div>
       ) : (
-        <>
-          {total === 0 ? (
-            <div className="no-results">No products found</div>
-          ) : (
-            <div className="products-grid">
-              {products.map((p) => (
-                <article key={p.id} className="product-card">
-                  <div
-                    className="product-image-wrapper"
-                    onClick={() => navigate(`/product/${p.id}`)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && navigate(`/product/${p.id}`)
-                    }
-                  >
-                    <img
-                      src={p.image_url || placeholder}
-                      alt={p.name}
-                      className="product-image"
-                      loading="lazy"
-                    />
-                  </div>
-                  <h2
-                    className="product-title"
-                    onClick={() => navigate(`/product/${p.id}`)}
-                  >
-                    {p.name}
-                  </h2>
-                  <p className="product-category">{p.category}</p>
-                  <p className="product-desc">{p.short_desc}</p>
-                  <div className="product-footer">
-                    <span className="product-price">
-                       {Number.isFinite(p?.price) ? `$${p.price.toFixed(2)}` : '$0.00'}
-                    </span>
-                    <button
-                      className="product-btn"
-                      type="button"
-                      onClick={() => navigate(`/product/${p.id}`)}
-                    >
-                      View details
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+        <div className="products-grid">
+          {products.map((p) => (
+            <article key={p?.id || Math.random()} className="product-card">
+              <div
+                className="product-image-wrapper"
+                onClick={() => navigate(`/product/${p?.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(`/product/${p?.id}`)}
+              >
+                <img
+                  src={p?.image_url || placeholder}
+                  alt={p?.name || 'Product'}
+                  className="product-image"
+                  loading="lazy"
+                />
+              </div>
+              <h2 className="product-title" onClick={() => navigate(`/product/${p?.id}`)}>
+                {p?.name || 'Unnamed Product'}
+              </h2>
+              <p className="product-category">{p?.category || 'N/A'}</p>
+              <p className="product-desc">{p?.short_desc || ''}</p>
+              <div className="product-footer">
+                <span className="product-price">
+                  {formatPrice(p?.price)} {/* BULLETPROOF */}
+                </span>
+                <button
+                  className="product-btn"
+                  type="button"
+                  onClick={() => navigate(`/product/${p?.id}`)}
+                >
+                  View details
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
 
-          {total > limit && (
-            <Pagination
-              total={total}
-              page={page}
-              limit={limit}
-              onPageChange={setPage}
-            />
-          )}
-        </>
+      {total > limit && (
+        <Pagination total={total} page={page} limit={limit} onPageChange={setPage} />
       )}
     </div>
   );
