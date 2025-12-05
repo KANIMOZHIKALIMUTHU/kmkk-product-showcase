@@ -34,7 +34,7 @@ const EnquiryForm = ({ productId, productName, onClose }) => {
 
     setLoading(true);
     try {
-      await axios.post('/api/enquiries', {
+      await axios.post('https://kmkk-product-showcase.onrender.com/api/enquiries', {
         product_id: productId,
         ...formData
       });
